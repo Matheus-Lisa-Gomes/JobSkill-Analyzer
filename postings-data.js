@@ -1031,3 +1031,7 @@ Requisitos:
 BENCHMARK_JOB_POSTINGS.forEach(p => {
   p.isBenchmark = true;
 });
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { BENCHMARK_JOB_POSTINGS };
+}

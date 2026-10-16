@@ -119,7 +119,28 @@ const TRANSLATIONS = {
     toastDeleted: "Vaga excluída com sucesso!",
     cannotDeleteBenchmark: "Vagas do benchmark original não podem ser excluídas!",
     btnDeleteJob: "Excluir Vaga",
-    confirmDeletePrompt: 'Deseja realmente excluir a vaga "{title}" da empresa "{company}"?\n\nEsta vaga personalizada será removida da sua análise e todas as métricas serão recalculadas.'
+    confirmDeletePrompt: 'Deseja realmente excluir a vaga "{title}" da empresa "{company}"?\n\nEsta vaga personalizada será removida da sua análise e todas as métricas serão recalculadas.',
+    btnOpenAddSkill: "Adicionar Habilidade",
+    lblMatrixOrigin: "Origem da Habilidade:",
+    originAll: "Todas",
+    originOfficial: "Padrão Oficial",
+    originCustom: "Personalizadas",
+    badgeOfficial: "Padrão Oficial",
+    badgeCustom: "Personalizada",
+    modalSkillHeaderTitle: "✨ Central de Habilidades Tech",
+    modalSkillHeaderSub: "Adicione competências oficiais recomendadas por padrões globais ou crie suas próprias habilidades personalizadas",
+    txtModalTabOfficial: "Fontes Oficiais da Indústria (Recomendadas)",
+    txtModalTabCustom: "Criar Habilidade Personalizada",
+    txtOfficialBannerTitle: "Padrões Oficiais Recomendados:",
+    txtOfficialBannerDesc: "Competências líderes segundo relatórios de referência como Stack Overflow Annual Survey, IEEE Spectrum, CNCF, Apache Foundation, DORA e Gartner. Ative na sua matriz com 1 clique.",
+    btnActivateSkill: "+ Ativar na Matriz",
+    skillActiveInMatrix: "✅ Ativa na Matriz",
+    toastOfficialSkillAdded: 'Habilidade oficial "{name}" ativada na sua matriz!',
+    toastCustomSkillAdded: 'Habilidade personalizada "{name}" adicionada com sucesso!',
+    toastSkillDeleted: 'Habilidade personalizada "{name}" excluída com sucesso!',
+    confirmDeleteSkillPrompt: 'Deseja realmente excluir a habilidade personalizada "{name}" da sua matriz?\n\nEla será removida da sua análise e suas estatísticas serão recalculadas.',
+    cannotDeleteOfficialSkill: "Habilidades oficiais do benchmark da indústria não podem ser excluídas!",
+    txtBtnSubmitCustomSkill: "Salvar Habilidade Personalizada"
   },
   en: {
     brandSubtitle: "Job Requirements Intelligence & Skill Gap Radar",
@@ -171,13 +192,35 @@ const TRANSLATIONS = {
     toastDeleted: "Job listing deleted successfully!",
     cannotDeleteBenchmark: "Original benchmark postings cannot be deleted!",
     btnDeleteJob: "Delete Job",
-    confirmDeletePrompt: 'Are you sure you want to delete the job "{title}" at "{company}"?\n\nThis posting will be removed from your analysis and all metrics will be recalculated.'
+    confirmDeletePrompt: 'Are you sure you want to delete the job "{title}" at "{company}"?\n\nThis posting will be removed from your analysis and all metrics will be recalculated.',
+    btnOpenAddSkill: "Add Skill",
+    lblMatrixOrigin: "Skill Origin:",
+    originAll: "All",
+    originOfficial: "Official Standard",
+    originCustom: "Custom",
+    badgeOfficial: "Official Benchmark",
+    badgeCustom: "Custom Skill",
+    modalSkillHeaderTitle: "✨ Tech Skills Hub",
+    modalSkillHeaderSub: "Add in-demand skills from official global standards or create your own custom skills",
+    txtModalTabOfficial: "Official Industry Sources (Recommended)",
+    txtModalTabCustom: "Create Custom Skill",
+    txtOfficialBannerTitle: "Recommended Official Standards:",
+    txtOfficialBannerDesc: "Leading competencies from benchmark reports such as Stack Overflow Annual Survey, IEEE Spectrum, CNCF, Apache Foundation, DORA, and Gartner. Activate into your matrix with 1 click.",
+    btnActivateSkill: "+ Add to Matrix",
+    skillActiveInMatrix: "✅ Active in Matrix",
+    toastOfficialSkillAdded: 'Official skill "{name}" activated in your matrix!',
+    toastCustomSkillAdded: 'Custom skill "{name}" added successfully!',
+    toastSkillDeleted: 'Custom skill "{name}" deleted successfully!',
+    confirmDeleteSkillPrompt: 'Are you sure you want to delete the custom skill "{name}" from your matrix?\n\nIt will be removed from your analysis and metrics will be recalculated.',
+    cannotDeleteOfficialSkill: "Official benchmark skills cannot be deleted!",
+    txtBtnSubmitCustomSkill: "Save Custom Skill"
   }
 };
 
 class SkillPulseApp {
   constructor() {
-    this.analyzer = new JobMarketAnalyzer();
+    this.customSkills = this.loadCustomSkills();
+    this.analyzer = new JobMarketAnalyzer(this.combineTaxonomy(SKILL_TAXONOMY, this.customSkills));
     
     // Preferences & state
     this.currentLang = localStorage.getItem("skillpulse_lang") || "pt";
@@ -188,6 +231,7 @@ class SkillPulseApp {
     // Tab filters
     this.chartRoleFilter = "all";
     this.matrixCategoryFilter = "all";
+    this.matrixOriginFilter = "all"; // 'all' | 'official' | 'custom'
     
     // Benchmark tab filters
     this.bmCategory = "all";
@@ -290,6 +334,76 @@ class SkillPulseApp {
     }
   }
 
+  loadCustomSkills() {
+    try {
+      const stored = localStorage.getItem("skillpulse_custom_skills");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          return parsed.map(s => {
+            const patterns = (s.patternStrings || []).map(p => {
+              try {
+                return new RegExp(p, 'i');
+              } catch (e) {
+                return new RegExp(p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+              }
+            });
+            return {
+              ...s,
+              patterns: patterns.length > 0 ? patterns : [new RegExp(`\\b${s.id}\\b`, 'i')]
+            };
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load custom skills:", e);
+    }
+    return [];
+  }
+
+  saveCustomSkills() {
+    try {
+      const serialized = this.customSkills.map(s => ({
+        ...s,
+        patterns: undefined,
+        patternStrings: (s.patterns || []).map(p => p.source)
+      }));
+      localStorage.setItem("skillpulse_custom_skills", JSON.stringify(serialized));
+    } catch (e) {
+      console.warn("Failed to save custom skills:", e);
+    }
+  }
+
+  combineTaxonomy(baseTaxonomy, customSkills) {
+    const list = [...baseTaxonomy];
+    const existingIds = new Set(list.map(s => s.id));
+    if (Array.isArray(customSkills)) {
+      customSkills.forEach(cs => {
+        if (!existingIds.has(cs.id)) {
+          list.push(cs);
+          existingIds.add(cs.id);
+        }
+      });
+    }
+    return list;
+  }
+
+  getCategoryLabel(categoryKey, lang = 'pt') {
+    const map = {
+      languages: { pt: "Linguagens & Core", en: "Languages & Core" },
+      data_bi: { pt: "Dados & Business Intelligence", en: "Data & Business Intelligence" },
+      backend_apis: { pt: "Backend & Arquitetura", en: "Backend & Architecture" },
+      databases: { pt: "Bancos de Dados", en: "Databases" },
+      cloud_devops: { pt: "Cloud & DevOps", en: "Cloud & DevOps" },
+      ai_automation: { pt: "IA Aplicada & Automação", en: "Applied AI & Automation" },
+      education_diff: { pt: "Soft Skills & Idiomas", en: "Soft Skills & Languages" }
+    };
+    if (map[categoryKey]) {
+      return lang === 'en' ? map[categoryKey].en : map[categoryKey].pt;
+    }
+    return categoryKey;
+  }
+
   initElements() {
     // Language & Source controls
     this.btnLangToggle = document.getElementById("btnLangToggle");
@@ -333,13 +447,30 @@ class SkillPulseApp {
     this.inputSearchBenchmark = document.getElementById("inputSearchBenchmark");
     this.inputSearchMyJobs = document.getElementById("inputSearchMyJobs");
 
-    // Modal
+    // Modal Postings
     this.modalOverlay = document.getElementById("postingModalOverlay");
     this.modalCloseBtn = document.getElementById("modalCloseBtn");
     this.modalJobTitle = document.getElementById("modalJobTitle");
     this.modalJobSub = document.getElementById("modalJobSub");
     this.modalJobBodyText = document.getElementById("modalJobBodyText");
     this.modalSkillsList = document.getElementById("modalSkillsList");
+
+    // Modal Skills (Official & Custom)
+    this.btnOpenAddSkillModal = document.getElementById("btnOpenAddSkillModal");
+    this.skillModalOverlay = document.getElementById("skillModalOverlay");
+    this.modalSkillCloseBtn = document.getElementById("modalSkillCloseBtn");
+    this.btnModalTabOfficial = document.getElementById("btnModalTabOfficial");
+    this.btnModalTabCustom = document.getElementById("btnModalTabCustom");
+    this.modalSectionOfficial = document.getElementById("modalSectionOfficial");
+    this.modalSectionCustom = document.getElementById("modalSectionCustom");
+    this.officialCatalogContainer = document.getElementById("officialCatalogContainer");
+    this.formAddCustomSkill = document.getElementById("formAddCustomSkill");
+    this.btnCancelCustomSkill = document.getElementById("btnCancelCustomSkill");
+
+    // Origin count badges in tab-matrix
+    this.cntMatrixAll = document.getElementById("cntMatrixAll");
+    this.cntMatrixOfficial = document.getElementById("cntMatrixOfficial");
+    this.cntMatrixCustom = document.getElementById("cntMatrixCustom");
 
     // Actions & Form
     this.formAddPosting = document.getElementById("formAddPosting");
@@ -388,6 +519,17 @@ class SkillPulseApp {
     setTxt("txtTabGaps", t.tabGaps);
     setTxt("txtTabPlan", t.tabPlan);
     setTxt("txtTabAdd", t.tabAdd);
+
+    // Skill Management and Modal Translations
+    setTxt("txtBtnOpenAddSkill", t.btnOpenAddSkill);
+    setTxt("lblMatrixOrigin", t.lblMatrixOrigin);
+    setTxt("modalSkillHeaderTitle", t.modalSkillHeaderTitle);
+    setTxt("modalSkillHeaderSub", t.modalSkillHeaderSub);
+    setTxt("txtModalTabOfficial", t.txtModalTabOfficial);
+    setTxt("txtModalTabCustom", t.txtModalTabCustom);
+    setTxt("txtOfficialBannerTitle", t.txtOfficialBannerTitle);
+    setTxt("txtOfficialBannerDesc", t.txtOfficialBannerDesc);
+    setTxt("txtBtnSubmitCustomSkill", t.txtBtnSubmitCustomSkill);
 
     if (this.analyzer) {
       this.refreshAll();
@@ -509,14 +651,54 @@ class SkillPulseApp {
       });
     });
 
+    // Skills Matrix Origin Filter Chips
+    document.querySelectorAll("[data-matrix-origin]").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll("[data-matrix-origin]").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        this.matrixOriginFilter = chip.getAttribute("data-matrix-origin");
+        this.renderSkillsMatrix();
+      });
+    });
+
+    // Open Add Skill Modal
+    if (this.btnOpenAddSkillModal) {
+      this.btnOpenAddSkillModal.addEventListener("click", () => this.openSkillModal());
+    }
+
+    // Modal Skill Controls & Tabs
+    if (this.modalSkillCloseBtn) {
+      this.modalSkillCloseBtn.addEventListener("click", () => this.closeSkillModal());
+    }
+    if (this.btnCancelCustomSkill) {
+      this.btnCancelCustomSkill.addEventListener("click", () => this.closeSkillModal());
+    }
+    if (this.skillModalOverlay) {
+      this.skillModalOverlay.addEventListener("click", (e) => {
+        if (e.target === this.skillModalOverlay) this.closeSkillModal();
+      });
+    }
+    if (this.btnModalTabOfficial && this.btnModalTabCustom) {
+      this.btnModalTabOfficial.addEventListener("click", () => this.switchModalTab("official"));
+      this.btnModalTabCustom.addEventListener("click", () => this.switchModalTab("custom"));
+    }
+    if (this.formAddCustomSkill) {
+      this.formAddCustomSkill.addEventListener("submit", (e) => this.handleAddCustomSkill(e));
+    }
+
     // Modal Close
     this.modalCloseBtn.addEventListener("click", () => this.closeModal());
     this.modalOverlay.addEventListener("click", (e) => {
       if (e.target === this.modalOverlay) this.closeModal();
     });
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && this.modalOverlay.classList.contains("active")) {
-        this.closeModal();
+      if (e.key === "Escape") {
+        if (this.modalOverlay && this.modalOverlay.classList.contains("active")) {
+          this.closeModal();
+        }
+        if (this.skillModalOverlay && this.skillModalOverlay.classList.contains("active")) {
+          this.closeSkillModal();
+        }
       }
     });
 
@@ -569,8 +751,199 @@ class SkillPulseApp {
       } else if (e.key === "skillpulse_user_skills") {
         this.userSkills = this.loadUserSkills();
         this.refreshAll();
+      } else if (e.key === "skillpulse_custom_skills") {
+        this.customSkills = this.loadCustomSkills();
+        this.analyzer.setTaxonomy(this.combineTaxonomy(SKILL_TAXONOMY, this.customSkills));
+        this.refreshAll();
       }
     });
+  }
+
+  openSkillModal() {
+    if (!this.skillModalOverlay) return;
+    this.switchModalTab("official");
+    this.renderOfficialCatalog();
+    this.skillModalOverlay.classList.add("active");
+  }
+
+  closeSkillModal() {
+    if (!this.skillModalOverlay) return;
+    this.skillModalOverlay.classList.remove("active");
+  }
+
+  switchModalTab(tabType) {
+    const isOfficial = tabType === "official";
+    if (this.btnModalTabOfficial) this.btnModalTabOfficial.classList.toggle("active", isOfficial);
+    if (this.btnModalTabCustom) this.btnModalTabCustom.classList.toggle("active", !isOfficial);
+    if (this.modalSectionOfficial) this.modalSectionOfficial.style.display = isOfficial ? "block" : "none";
+    if (this.modalSectionCustom) this.modalSectionCustom.style.display = !isOfficial ? "block" : "none";
+    if (isOfficial) {
+      this.renderOfficialCatalog();
+    }
+  }
+
+  renderOfficialCatalog() {
+    if (!this.officialCatalogContainer) return;
+    const isEn = this.currentLang === "en";
+    const t = TRANSLATIONS[this.currentLang];
+    const catalog = window.OFFICIAL_RECOMMENDED_SKILLS || [];
+    const activeSkillIds = new Set(this.analyzer.taxonomy.map(s => s.id));
+
+    this.officialCatalogContainer.innerHTML = catalog.map(skill => {
+      const isActive = activeSkillIds.has(skill.id);
+      const name = isEn ? skill.nameEn : skill.namePt;
+      const catLabel = isEn ? skill.categoryLabelEn : skill.categoryLabelPt;
+      const desc = isEn ? skill.descEn : skill.descPt;
+      const source = skill.officialSource || "Padrão Oficial (Indústria)";
+
+      return `
+        <div class="official-skill-card">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.4rem;">
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: #fff; line-height: 1.3;">${escapeHtml(name)}</h4>
+              <span class="official-source-tag" title="${escapeHtml(source)}">🏛️ ${escapeHtml(source.split('/')[0].trim())}</span>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.4rem; letter-spacing: 0.03em;">
+              ${escapeHtml(catLabel)}
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.45;">${escapeHtml(desc)}</p>
+          </div>
+
+          <div style="margin-top: 0.75rem;">
+            <button class="btn-activate-skill ${isActive ? 'is-active' : ''}" 
+              ${isActive ? 'disabled' : ''} 
+              onclick="app.activateOfficialSkill('${escapeHtml(skill.id)}')">
+              ${isActive ? t.skillActiveInMatrix : t.btnActivateSkill}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  activateOfficialSkill(skillId) {
+    const catalog = window.OFFICIAL_RECOMMENDED_SKILLS || [];
+    const skillObj = catalog.find(s => s.id === skillId);
+    if (!skillObj) return;
+
+    if (this.analyzer.skillMap.has(skillId)) {
+      this.showToast(this.currentLang === "en" ? "Skill already active in matrix!" : "Habilidade já está ativa na matriz!", "info");
+      return;
+    }
+
+    const newSkill = {
+      ...skillObj,
+      origin: "official",
+      isCustom: false
+    };
+
+    this.customSkills.push(newSkill);
+    this.saveCustomSkills();
+
+    this.analyzer.setTaxonomy(this.combineTaxonomy(SKILL_TAXONOMY, this.customSkills));
+
+    if (!this.userSkills[skillId]) {
+      this.userSkills[skillId] = "learning";
+      this.saveUserSkills();
+    }
+
+    this.refreshAll();
+    this.renderOfficialCatalog();
+
+    const t = TRANSLATIONS[this.currentLang];
+    const skillName = this.currentLang === "en" ? skillObj.nameEn.split(" ")[0] : skillObj.namePt.split(" ")[0];
+    this.showToast(t.toastOfficialSkillAdded.replace("{name}", skillName), "success");
+  }
+
+  handleAddCustomSkill(e) {
+    e.preventDefault();
+    const isEn = this.currentLang === "en";
+    const t = TRANSLATIONS[this.currentLang];
+
+    const nameInput = document.getElementById("inputCustomSkillName");
+    const catInput = document.getElementById("selectCustomSkillCategory");
+    const statusInput = document.getElementById("selectCustomSkillInitialStatus");
+    const kwInput = document.getElementById("inputCustomSkillKeywords");
+    const descInput = document.getElementById("textareaCustomSkillDesc");
+
+    const name = nameInput ? nameInput.value.trim() : "";
+    const category = catInput ? catInput.value : "languages";
+    const initialStatus = statusInput ? statusInput.value : "learning";
+    const rawKeywords = kwInput ? kwInput.value.trim() : "";
+    const desc = descInput ? descInput.value.trim() : "";
+
+    if (!name || !rawKeywords) {
+      this.showToast(t.toastFillRequired, "warning");
+      return;
+    }
+
+    // Generate safe unique ID
+    const slug = normalizeText(name).replace(/[^a-z0-9]/g, "_").replace(/_+/g, "_").slice(0, 20);
+    const customId = `usr_${slug || "skill"}_${Date.now().toString(36)}`;
+
+    // Build regex patterns from keywords
+    const keywordsList = rawKeywords.split(",").map(k => k.trim()).filter(Boolean);
+    const patterns = keywordsList.map(kw => {
+      const escaped = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i');
+    });
+
+    const newSkill = {
+      id: customId,
+      namePt: name,
+      nameEn: name,
+      category: category,
+      categoryLabelPt: this.getCategoryLabel(category, 'pt'),
+      categoryLabelEn: this.getCategoryLabel(category, 'en'),
+      tier: "Alta Demanda",
+      origin: "custom",
+      officialSource: isEn ? "User Custom Skill" : "Habilidade Personalizada",
+      isCustom: true,
+      patterns: patterns,
+      patternStrings: patterns.map(p => p.source),
+      descPt: desc || (isEn ? "Custom skill added by user." : "Habilidade personalizada adicionada pelo usuário."),
+      descEn: desc || "Custom skill added by user."
+    };
+
+    this.customSkills.push(newSkill);
+    this.saveCustomSkills();
+
+    this.analyzer.setTaxonomy(this.combineTaxonomy(SKILL_TAXONOMY, this.customSkills));
+    this.userSkills[customId] = initialStatus;
+    this.saveUserSkills();
+
+    this.closeSkillModal();
+    if (this.formAddCustomSkill) this.formAddCustomSkill.reset();
+
+    this.refreshAll();
+    this.showToast(t.toastCustomSkillAdded.replace("{name}", name), "success");
+  }
+
+  confirmDeleteCustomSkill(skillId) {
+    const isEn = this.currentLang === "en";
+    const t = TRANSLATIONS[this.currentLang];
+    const skillObj = this.analyzer.skillMap.get(skillId);
+    if (!skillObj) return;
+
+    if (skillObj.origin === "official" && !skillObj.isCustom) {
+      this.showToast(t.cannotDeleteOfficialSkill, "warning");
+      return;
+    }
+
+    const skillName = isEn ? skillObj.nameEn : skillObj.namePt;
+    const confirmMsg = t.confirmDeleteSkillPrompt.replace("{name}", skillName);
+
+    if (window.confirm(confirmMsg)) {
+      this.customSkills = this.customSkills.filter(s => s.id !== skillId);
+      this.saveCustomSkills();
+
+      delete this.userSkills[skillId];
+      this.saveUserSkills();
+
+      this.analyzer.setTaxonomy(this.combineTaxonomy(SKILL_TAXONOMY, this.customSkills));
+      this.refreshAll();
+      this.showToast(t.toastSkillDeleted.replace("{name}", skillName), "success");
+    }
   }
 
   switchTab(tabId) {
@@ -1019,14 +1392,40 @@ class SkillPulseApp {
   renderSkillsMatrix() {
     if (!this.skillsMatrixContainer) return;
 
+    const isEn = this.currentLang === "en";
+    const t = TRANSLATIONS[this.currentLang];
     const freqMap = new Map(this.analysis.skillFrequencies.map(f => [f.skill.id, f]));
-    let skillsList = this.analyzer.taxonomy;
+    const allSkills = this.analyzer.taxonomy;
 
+    // Filter by Category
+    let skillsList = allSkills;
     if (this.matrixCategoryFilter !== "all") {
       skillsList = skillsList.filter(s => s.category === this.matrixCategoryFilter);
     }
 
-    const t = TRANSLATIONS[this.currentLang];
+    // Filter by Origin (Official Benchmark vs User Custom)
+    if (this.matrixOriginFilter === "official") {
+      skillsList = skillsList.filter(s => s.origin === "official" && !s.isCustom);
+    } else if (this.matrixOriginFilter === "custom") {
+      skillsList = skillsList.filter(s => s.origin === "custom" || s.isCustom);
+    }
+
+    // Update origin count chips
+    const officialCount = allSkills.filter(s => s.origin === "official" && !s.isCustom).length;
+    const customCount = allSkills.filter(s => s.origin === "custom" || s.isCustom).length;
+    if (this.cntMatrixAll) this.cntMatrixAll.textContent = allSkills.length;
+    if (this.cntMatrixOfficial) this.cntMatrixOfficial.textContent = officialCount;
+    if (this.cntMatrixCustom) this.cntMatrixCustom.textContent = customCount;
+
+    if (skillsList.length === 0) {
+      this.skillsMatrixContainer.innerHTML = `
+        <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; color: var(--text-muted);">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</div>
+          <p>${isEn ? "No skills found for this filter." : "Nenhuma habilidade encontrada para este filtro."}</p>
+        </div>
+      `;
+      return;
+    }
 
     this.skillsMatrixContainer.innerHTML = skillsList.map(skill => {
       const status = this.userSkills[skill.id] || "gap";
@@ -1034,24 +1433,41 @@ class SkillPulseApp {
       const percentage = freqItem ? freqItem.percentage : 0;
       const count = freqItem ? freqItem.count : 0;
 
-      const skillName = this.currentLang === "en" ? skill.nameEn : skill.namePt;
-      const catLabel = this.currentLang === "en" ? skill.categoryLabelEn : skill.categoryLabelPt;
-      const skillDesc = this.currentLang === "en" ? skill.descEn : skill.descPt;
+      const skillName = isEn ? skill.nameEn : skill.namePt;
+      const catLabel = isEn ? skill.categoryLabelEn : skill.categoryLabelPt;
+      const skillDesc = isEn ? skill.descEn : skill.descPt;
+      const isCustom = skill.origin === "custom" || skill.isCustom;
+      const officialSource = skill.officialSource || "Padrão Oficial (Indústria)";
+
+      const provenanceBadge = isCustom 
+        ? `<span class="badge-origin-custom" title="Habilidade personalizada adicionada pelo usuário">👤 ${t.badgeCustom}</span>`
+        : `<span class="badge-origin-official" title="${escapeHtml(officialSource)}">🏛️ ${t.badgeOfficial}</span>`;
+
+      const deleteBtn = isCustom
+        ? `<button class="btn-delete-custom-skill" onclick="event.stopPropagation(); app.confirmDeleteCustomSkill('${skill.id}')" title="${isEn ? 'Delete this custom skill' : 'Excluir esta habilidade personalizada'}">
+             <span>🗑️</span> ${isEn ? 'Delete' : 'Excluir'}
+           </button>`
+        : '';
 
       return `
         <div class="skill-card status-${status}" id="skillCard-${skill.id}">
           <div>
+            <div class="skill-provenance-bar">
+              ${provenanceBadge}
+              ${deleteBtn}
+            </div>
+
             <div class="skill-card-top">
               <div>
-                <h4 class="skill-name">${skillName}</h4>
-                <div class="skill-category">${catLabel}</div>
+                <h4 class="skill-name">${escapeHtml(skillName)}</h4>
+                <div class="skill-category">${escapeHtml(catLabel)}</div>
               </div>
               <div class="skill-market-freq" title="Present in ${count}/${this.getActivePostings().length} jobs">
-                ${percentage}% <span style="font-size: 0.68rem; font-weight: normal;">${this.currentLang === "en" ? "demand" : "demanda"}</span>
+                ${percentage}% <span style="font-size: 0.68rem; font-weight: normal;">${isEn ? "demand" : "demanda"}</span>
               </div>
             </div>
             
-            <p class="skill-desc" style="margin-top: 0.6rem;">${skillDesc}</p>
+            <p class="skill-desc" style="margin-top: 0.6rem;">${escapeHtml(skillDesc)}</p>
           </div>
 
           <div>
@@ -1421,10 +1837,14 @@ class SkillPulseApp {
             ${topSkills.map((item, idx) => {
               const name = isEn ? item.skill.nameEn : item.skill.namePt;
               const cat = isEn ? item.skill.categoryLabelEn : item.skill.categoryLabelPt;
+              const isCustom = item.skill.origin === 'custom' || item.skill.isCustom;
+              const provenanceTag = isCustom 
+                ? `<span style="font-size: 0.62rem; color: #f472b6; font-weight: 700; margin-left: 4px;">[${isEn ? 'Custom' : 'Personalizada'}]</span>`
+                : `<span style="font-size: 0.62rem; color: #818cf8; font-weight: 700; margin-left: 4px;">[${isEn ? 'Official' : 'Oficial'}]</span>`;
               return `
                 <tr>
                   <td style="font-weight: 700;">#${idx + 1}</td>
-                  <td><strong>${name}</strong></td>
+                  <td><strong>${name}</strong> ${provenanceTag}</td>
                   <td>${cat}</td>
                   <td style="text-align: center; font-weight: 700; font-family: 'JetBrains Mono', monospace;">${item.percentage}%</td>
                   <td style="text-align: center;">${item.count}/${total}</td>

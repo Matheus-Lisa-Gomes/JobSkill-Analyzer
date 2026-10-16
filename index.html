@@ -300,7 +300,16 @@
             <h2><span>🎯</span> Minha Matriz de Habilidades ("Set Your Skill List")</h2>
             <p class="panel-subtitle">Defina seu nível de domínio em cada habilidade demandada pelo mercado para calibrar seu diagnóstico</p>
           </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-primary btn-sm" id="btnOpenAddSkillModal" title="Adicionar novas habilidades ou ativar competências de fontes oficiais">
+              <span>✨</span> <span id="txtBtnOpenAddSkill">Adicionar Habilidade</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" id="matrixFilterBar" style="margin-bottom: 1.5rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.85rem;">
           <div class="filter-group">
+            <span style="font-size: 0.82rem; color: var(--text-dim); margin-right: 0.3rem;" id="lblMatrixCat">Categoria:</span>
             <button class="filter-chip active" data-matrix-cat="all">Todas as Categorias</button>
             <button class="filter-chip" data-matrix-cat="languages">Linguagens</button>
             <button class="filter-chip" data-matrix-cat="data_bi">Dados & BI</button>
@@ -308,6 +317,13 @@
             <button class="filter-chip" data-matrix-cat="cloud_devops">Cloud & DevOps</button>
             <button class="filter-chip" data-matrix-cat="ai_automation">IA & Automação</button>
             <button class="filter-chip" data-matrix-cat="education_diff">Diferenciais</button>
+          </div>
+
+          <div class="filter-group" id="matrixOriginGroup" style="border-top: 1px solid var(--border-subtle); padding-top: 0.75rem; width: 100%;">
+            <span style="font-size: 0.82rem; color: var(--text-dim); margin-right: 0.3rem;" id="lblMatrixOrigin">Origem da Habilidade:</span>
+            <button class="filter-chip active" data-matrix-origin="all" id="btnOriginAll">🌐 Todas (<span id="cntMatrixAll">38</span>)</button>
+            <button class="filter-chip" data-matrix-origin="official" id="btnOriginOfficial">🏛️ Padrão Oficial (<span id="cntMatrixOfficial">38</span>)</button>
+            <button class="filter-chip" data-matrix-origin="custom" id="btnOriginCustom">👤 Personalizadas (<span id="cntMatrixCustom">0</span>)</button>
           </div>
         </div>
 
@@ -589,6 +605,104 @@
           </div>
           <div id="modalJobBodyText">
             <!-- Full Job description text -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Adding Skills (Official Catalog & Custom Skill) -->
+    <div class="modal-overlay" id="skillModalOverlay">
+      <div class="modal-card modal-card-large">
+        <div class="modal-header">
+          <div>
+            <h2 id="modalSkillHeaderTitle" style="font-size: 1.25rem; font-weight: 700; color: #fff;">
+              ✨ Central de Habilidades Tech
+            </h2>
+            <div id="modalSkillHeaderSub" style="font-size: 0.85rem; color: var(--accent-cyan); margin-top: 0.2rem;">
+              Adicione competências oficiais recomendadas por padrões globais ou crie suas próprias habilidades personalizadas
+            </div>
+          </div>
+          <button class="modal-close-btn" id="modalSkillCloseBtn" aria-label="Fechar">&times;</button>
+        </div>
+
+        <!-- Modal Sub-Tabs -->
+        <div class="modal-tab-nav">
+          <button class="modal-tab-btn active" id="btnModalTabOfficial" data-modal-tab="official">
+            <span>🏛️</span> <span id="txtModalTabOfficial">Fontes Oficiais da Indústria (Recomendadas)</span>
+          </button>
+          <button class="modal-tab-btn" id="btnModalTabCustom" data-modal-tab="custom">
+            <span>➕</span> <span id="txtModalTabCustom">Criar Habilidade Personalizada</span>
+          </button>
+        </div>
+
+        <div class="modal-body" style="padding: 1.5rem; max-height: calc(85vh - 140px); overflow-y: auto;">
+          <!-- Panel 1: Official Catalog -->
+          <div id="modalSectionOfficial" class="modal-section-panel active">
+            <div class="official-alert-banner">
+              <span style="font-size: 1.35rem; line-height: 1;">💡</span>
+              <div>
+                <strong id="txtOfficialBannerTitle" style="color: #67e8f9; font-size: 0.9rem;">Padrões Oficiais Recomendados:</strong>
+                <p id="txtOfficialBannerDesc" style="font-size: 0.82rem; margin-top: 0.25rem; color: var(--text-muted); line-height: 1.5;">
+                  Competências líderes segundo relatórios de referência como <strong>Stack Overflow Annual Survey</strong>, <strong>IEEE Spectrum</strong>, <strong>CNCF</strong>, <strong>Apache Foundation</strong>, <strong>DORA</strong> e <strong>Gartner</strong>. Ative na sua matriz com 1 clique.
+                </p>
+              </div>
+            </div>
+
+            <div class="official-catalog-grid" id="officialCatalogContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Panel 2: Custom Skill Form -->
+          <div id="modalSectionCustom" class="modal-section-panel" style="display: none;">
+            <form id="formAddCustomSkill" class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="inputCustomSkillName" id="lblCustomSkillName">Nome da Habilidade *</label>
+                <input type="text" id="inputCustomSkillName" class="form-input" placeholder="Ex: Rust, Golang, Elixir, Snowflake, etc." required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="selectCustomSkillCategory" id="lblCustomSkillCat">Domínio / Categoria *</label>
+                <select id="selectCustomSkillCategory" class="form-select" required>
+                  <option value="languages">Linguagens & Core</option>
+                  <option value="data_bi">Dados & Business Intelligence</option>
+                  <option value="backend_apis">Backend & Arquitetura</option>
+                  <option value="databases">Bancos de Dados</option>
+                  <option value="cloud_devops">Cloud & DevOps</option>
+                  <option value="ai_automation">IA Aplicada & Automação</option>
+                  <option value="education_diff">Soft Skills & Idiomas</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="selectCustomSkillInitialStatus" id="lblCustomSkillStatus">Nível Atual do Usuário *</label>
+                <select id="selectCustomSkillInitialStatus" class="form-select" required>
+                  <option value="learning" selected>🟡 Estudando (Learning)</option>
+                  <option value="mastered">🟢 Domino (Mastered)</option>
+                  <option value="gap">🔴 Gap (A aprender)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="inputCustomSkillKeywords" id="lblCustomSkillKeywords">Palavras-chave NLP (Separadas por vírgula) *</label>
+                <input type="text" id="inputCustomSkillKeywords" class="form-input" placeholder="Ex: rust, rustlang, cargo, memory safety" required>
+                <span style="font-size: 0.72rem; color: var(--text-dim); margin-top: 0.2rem; display: block;" id="tipCustomKeywords">
+                  Termos que o analisador irá buscar nas vagas para detectar esta habilidade automaticamente.
+                </span>
+              </div>
+
+              <div class="form-group full-width">
+                <label class="form-label" for="textareaCustomSkillDesc" id="lblCustomSkillDesc">Descrição / Objetivo da Habilidade</label>
+                <textarea id="textareaCustomSkillDesc" class="form-textarea" style="min-height: 75px;" placeholder="Breve explicação sobre a aplicabilidade técnica desta competência..."></textarea>
+              </div>
+
+              <div class="form-group full-width" style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 0.5rem;">
+                <button type="button" class="btn btn-outline" id="btnCancelCustomSkill">Cancelar</button>
+                <button type="submit" class="btn btn-primary" id="btnSubmitCustomSkill">
+                  <span>💾</span> <span id="txtBtnSubmitCustomSkill">Salvar Habilidade Personalizada</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -49,14 +49,19 @@ A aplicação roda **100% no navegador**, sem necessidade de servidores de backe
 ## ✨ Funcionalidades Principais
 
 - **📊 50 Vagas Reais de Referência (Benchmark):** Base curada e balanceada cobrindo posições Júnior, Pleno, Sênior e Especialista/Lead em grandes empresas de tecnologia.
-- **🧠 Motor NLP com 33 Competências & 6 Domínios:** Reconhece linguagens, frameworks de Big Data, nuvens públicas, bancos de dados, metodologias ágeis e níveis de proficiência em idiomas.
+- **✨ Central de Habilidades Dinâmica (Oficiais vs. Personalizadas):** 
+  - **Catálogo Oficial da Indústria:** Ative competências de alta demanda respaldadas por fontes de autoridade (**Stack Overflow Annual Survey**, **IEEE Spectrum**, **CNCF**, **Apache Software Foundation**, **DORA** e **Gartner**) como *Kubernetes*, *Terraform*, *Kafka*, *Airflow*, *Rust*, *Golang*, *Snowflake*, *Databricks* e *PyTorch*.
+  - **Criação de Habilidades Personalizadas:** Crie qualquer competência personalizada do zero com palavras-chave de detecção NLP automática e nível de proficiência inicial.
+  - **Diferenciação Visual Estrita:** Identificação clara por badges institucionais (`🏛️ Padrão Oficial` vs `👤 Personalizada`) e filtros dedicados por origem na Matriz de Habilidades.
+  - **Exclusão Segura:** Permite remover habilidades personalizadas a qualquer momento com recálculo instantâneo de métricas, preservando a integridade das competências oficiais.
+- **🧠 Motor NLP com Segmentação de Seções & Regexes Calibradas:** Extração de requisitos e classificação em *Obrigatório* ou *Diferencial* com captura de evidências contextuais.
 - **🛡️ Segmentação Inteligente Anti-Falso Positivo:** Remove automaticamente blocos de benefícios (*"Plano de Saúde"*, *"Vale Refeição"*, *"Seguro de Vida"*), evitando que menções a planos de saúde sejam computadas como requisitos de conhecimento no setor hospitalar.
 - **🌐 Suporte Bilingue Instantâneo (🇧🇷 PT-BR / 🇺🇸 EN):** Tradução em tempo real de toda a interface, estatísticas, alertas e relatórios com apenas um clique.
 - **🎛️ Seletor de Fonte Dinâmico:** Alterne a análise entre:
   - 🌐 *Todas as Vagas* (Agregado geral)
   - 🏛️ *Benchmark Referência* (As 50 vagas de calibração)
   - 👤 *Minhas Vagas Adicionadas* (Vagas inseridas pelo próprio usuário)
-- **📄 Relatório Executivo Dark-Themed em PDF:** Um clique no cabeçalho compila um dossiê completo de carreira estilizado com padrão visual escuro profissional para impressão ou exportação em PDF.
+- **📄 Relatório Executivo Dark-Themed em PDF:** Um clique no cabeçalho compila um dossiê completo de carreira estilizado com padrão visual escuro profissional para impressão ou exportação em PDF, com tags de proveniência de cada habilidade.
 - **💾 Persistência & Backup Robusto:** Salva suas habilidades e vagas customizadas no `localStorage` do navegador com sincronização entre abas e botões dedicados de **Exportar/Importar JSON**.
 
 ---
@@ -68,8 +73,12 @@ A aplicação roda **100% no navegador**, sem necessidade de servidores de backe
 - **Distribuição de Demandas (Top Skills):** Gráfico interativo com barras proporcionais indicando quais tecnologias aparecem em maior porcentagem das vagas.
 - **Rede de Co-ocorrências:** Algoritmo que identifica quais tecnologias aparecem juntas no mesmo anúncio (ex.: *Python + Spark + AWS* ou *SQL + dbt + Airflow*).
 
-### 2. 🎯 Matriz de Gaps de Habilidades
-- Avaliação interativa de cada uma das 33 competências em 4 níveis:
+### 2. 🎯 Minha Matriz de Habilidades & Central de Competências
+- **Botão "Adicionar Habilidade":**
+  - **Aba Fontes Oficiais:** Lista de competências validadas por padrões da indústria com ativação em 1 clique.
+  - **Aba Habilidade Personalizada:** Formulário para cadastrar qualquer tecnologia com palavras-chave regex para o analisador de vagas.
+- **Filtro de Origem:** Alterne a visualização da matriz entre `🌐 Todas`, `🏛️ Padrão Oficial` e `👤 Personalizadas`.
+- **Avaliação em 4 Níveis:**
   - `0 - Sem Interesse / Não domino`
   - `1 - Iniciante (Conceitos básicos / Estudos)`
   - `2 - Intermediário (Uso prático em projetos)`
