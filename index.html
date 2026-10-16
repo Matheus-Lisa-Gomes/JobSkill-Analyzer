@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillPulse | Analisador de 50 Vagas Reais & Matriz de Habilidades Tech</title>
+  <meta name="description" content="Aplicação de inteligência de mercado para análise de 50 vagas reais de tecnologia (Dados, Backend Python e IA), extração de requisitos e mapeamento de gaps de habilidades.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Header Section -->
+    <header class="app-header" id="appHeader">
+      <div class="brand-wrapper">
+        <img src="assets/logo.jpg" alt="SkillPulse Logo" class="brand-logo-img" id="brandLogo">
+        <div class="brand-title">
+          <h1>SkillPulse AI</h1>
+          <div class="brand-subtitle">
+            <span>Análise de Requisitos de Vagas & Gap de Habilidades</span>
+            <span class="badge-pulse"><span class="pulse-dot"></span> Benchmark 2026 Ativo</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button class="btn-lang" id="btnLangToggle" title="Alterar idioma / Switch Language">
+          <span id="langPt" class="lang-pill active-lang">
+            <svg class="flag-icon" viewBox="0 0 640 480" width="16" height="12" aria-hidden="true">
+              <path fill="#009b3a" d="M0 0h640v480H0z"/>
+              <path fill="#fedf00" d="M320 40 600 240 320 440 40 240z"/>
+              <circle cx="320" cy="240" r="120" fill="#002776"/>
+              <path fill="#fff" d="M200 240a120 120 0 0 0 240 0 125 125 0 0 1-240 0z"/>
+            </svg>
+            <span>PT</span>
+          </span>
+          <span class="lang-divider">|</span>
+          <span id="langEn" class="lang-pill">
+            <svg class="flag-icon" viewBox="0 0 640 480" width="16" height="12" aria-hidden="true">
+              <path fill="#bd3d44" d="M0 0h640v480H0z"/>
+              <path stroke="#fff" stroke-width="37" d="M0 55.5h640M0 129.5h640M0 203.5h640M0 277.5h640M0 351.5h640M0 425.5h640"/>
+              <path fill="#192f5d" d="M0 0h260v260H0z"/>
+              <g fill="#fff">
+                <circle cx="45" cy="40" r="12"/><circle cx="130" cy="40" r="12"/><circle cx="215" cy="40" r="12"/>
+                <circle cx="87" cy="85" r="12"/><circle cx="172" cy="85" r="12"/>
+                <circle cx="45" cy="130" r="12"/><circle cx="130" cy="130" r="12"/><circle cx="215" cy="130" r="12"/>
+                <circle cx="87" cy="175" r="12"/><circle cx="172" cy="175" r="12"/>
+                <circle cx="45" cy="220" r="12"/><circle cx="130" cy="220" r="12"/><circle cx="215" cy="220" r="12"/>
+              </g>
+            </svg>
+            <span>EN</span>
+          </span>
+        </button>
+        <button class="btn btn-outline" id="btnGeneratePdf" title="Gerar PDF Geral com Informações de Todo o App">
+          <span>📄</span> <span id="txtBtnPdf">Gerar PDF Completo</span>
+        </button>
+        <button class="btn btn-outline" id="btnResetBenchmark" title="Restaurar as 50 vagas reais do benchmark">
+          <span>🔄</span> <span id="txtBtnReset">Restaurar 50 Vagas</span>
+        </button>
+        <button class="btn btn-primary" id="btnQuickAddPosting">
+          <span>➕</span> <span id="txtBtnNew">Nova Vaga</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Statistical Summary Cards -->
+    <section class="stats-grid" id="statsBanner" aria-label="Resumo de Métricas">
+      <div class="stat-card" id="cardTotalPostings">
+        <div class="stat-header">
+          <span class="stat-label" id="lblStatPostings">Amostra de Vagas</span>
+          <div class="stat-icon text-cyan">💼</div>
+        </div>
+        <div class="stat-value" id="valTotalPostings">50 <span class="sub" id="lblSubPostings">vagas</span></div>
+        <div class="stat-footer" id="footerStatPostings">
+          <span class="text-cyan">●</span> <span id="txtStatPostingsFoot">100% da meta de 50 vagas alcançada</span>
+        </div>
+      </div>
+
+      <div class="stat-card" id="cardUniqueSkills">
+        <div class="stat-header">
+          <span class="stat-label" id="lblStatSkills">Habilidades Rastreadas</span>
+          <div class="stat-icon text-indigo">🧠</div>
+        </div>
+        <div class="stat-value" id="valUniqueSkills">33 <span class="sub" id="lblSubSkills">competências</span></div>
+        <div class="stat-footer">
+          <span class="text-indigo">●</span> <span id="txtStatSkillsFoot">Extração automática via NLP</span>
+        </div>
+      </div>
+
+      <div class="stat-card" id="cardMarketMatch">
+        <div class="stat-header">
+          <span class="stat-label" id="lblStatMatch">Aderência ao Mercado</span>
+          <div class="stat-icon text-emerald">🎯</div>
+        </div>
+        <div class="stat-value" id="valMarketMatch">74% <span class="sub" id="lblSubMatch">compatível</span></div>
+        <div class="stat-footer">
+          <span class="text-emerald">●</span> <span id="txtStatMatchFoot">Baseado na sua matriz de habilidades</span>
+        </div>
+      </div>
+
+      <div class="stat-card" id="cardTopSkill">
+        <div class="stat-header">
+          <span class="stat-label" id="lblStatTopSkill">Habilidade Mais Exigida</span>
+          <div class="stat-icon text-amber">⭐</div>
+        </div>
+        <div class="stat-value" id="valTopSkill">SQL <span class="sub" id="valTopSkillPercent">92%</span></div>
+        <div class="stat-footer">
+          <span class="text-amber">●</span> <span id="txtStatTopSkillFoot">Presente na maioria das vagas</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Source Selector Bar (Benchmark vs User Postings) -->
+    <section class="source-selector-wrapper" id="sourceSelectorBanner" aria-label="Filtro de Origem de Dados">
+      <span class="source-label" id="lblSource"><span>📁</span> Base de Dados:</span>
+      <button class="source-chip active" data-source="all" id="btnSourceAll">
+        <span>🌐</span> <span id="txtSourceAll">Todas as Vagas</span> (<span id="cntSourceAll">50</span>)
+      </button>
+      <button class="source-chip" data-source="benchmark" id="btnSourceBenchmark">
+        <span>🏛️</span> <span id="txtSourceBenchmark">Benchmark Referência</span> (<span id="cntSourceBenchmark">50</span>)
+      </button>
+      <button class="source-chip" data-source="user" id="btnSourceUser">
+        <span>👤</span> <span id="txtSourceUser">Minhas Vagas Adicionadas</span> (<span id="cntSourceUser">0</span>)
+      </button>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-nav" id="mainNavigation" aria-label="Navegação da Aplicação" style="overflow: hidden !important; overflow-x: hidden !important; scrollbar-width: none !important;">
+      <!-- Linha 1: Visão Geral, Matriz de Skills, Gaps e Plano Tático -->
+      <div class="tabs-nav-row tabs-nav-primary">
+        <button class="tab-btn active" data-tab="tab-overview" id="navTabOverview">
+          <span>📊</span> <span id="txtTabOverview">Visão Geral & Métricas</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-matrix" id="navTabMatrix">
+          <span>🎯</span> <span id="txtTabMatrix">Minha Matriz de Skills</span> <span class="tab-badge" id="badgeSkillsCount">33</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-gaps" id="navTabGaps">
+          <span>⚡</span> <span id="txtTabGaps">Análise de Gaps & Alavancas</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-actionplan" id="navTabActionPlan">
+          <span>🚀</span> <span id="txtTabPlan">Plano Tático 30-60-90 Dias</span>
+        </button>
+      </div>
+
+      <!-- Linha 2: Elementos restantes (Benchmark e Minhas Vagas) -->
+      <div class="tabs-nav-row tabs-nav-secondary">
+        <button class="tab-btn" data-tab="tab-benchmark" id="navTabBenchmark">
+          <span>🏛️</span> <span id="txtTabBenchmark">Benchmark Referência</span> <span class="tab-badge" id="badgeBenchmarkCount">50</span>
+        </button>
+        <button class="tab-btn" data-tab="tab-myjobs" id="navTabMyJobs">
+          <span>📋</span> <span id="txtTabMyJobs">Minhas Vagas Adicionadas</span> <span class="tab-badge" id="badgeMyJobsCount">0</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- TAB 1: OVERVIEW & ANALYTICS -->
+    <main class="tab-content active" id="tab-overview">
+      <div class="analytics-grid">
+        <!-- Main Bar Chart -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <div>
+              <h2 id="titleChartOverview"><span>📈</span> Top Habilidades Mais Demandadas</h2>
+              <p class="panel-subtitle" id="subChartOverview">Frequência percentual de ocorrência na base de vagas selecionada</p>
+            </div>
+            <div class="filter-group">
+              <button class="filter-chip active" data-chart-role="all" id="btnChartFilterAll">Geral</button>
+              <button class="filter-chip" data-chart-role="data" id="btnChartFilterData">Dados & BI</button>
+              <button class="filter-chip" data-chart-role="backend" id="btnChartFilterBackend">Backend Python</button>
+              <button class="filter-chip" data-chart-role="ai_automation" id="btnChartFilterAI">IA & Automação</button>
+            </div>
+          </div>
+          <div class="chart-container" id="barChartContainer">
+            <!-- Dynamic SVG Chart injected by JS -->
+          </div>
+        </div>
+
+        <!-- Co-occurrence & Key Findings Panel -->
+        <div class="glass-panel">
+          <div class="panel-title">
+            <div>
+              <h2 id="titleCooccur"><span>🔗</span> Sinergias & Pares Tecnológicos</h2>
+              <p class="panel-subtitle" id="subCooccur">Ferramentas que o mercado mais exige juntas</p>
+            </div>
+          </div>
+          
+          <div class="cooccur-grid" id="cooccurrenceList">
+            <!-- Injected by JS -->
+          </div>
+
+          <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle);">
+            <h3 style="font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--accent-cyan);" id="titleInsights">💡 Insights Estratégicos do Mercado 2026:</h3>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; padding-left: 1.2rem;" id="listInsights">
+              <li><strong>SQL é o denominador comum obrigatório:</strong> Presente em mais de 90% das vagas de Dados e 85% de Backend.</li>
+              <li><strong>Power BI + DAX domina Dados no Brasil:</strong> Exigido com modelagem estrela e tradução de regras de negócio.</li>
+              <li><strong>Python + FastAPI + Docker:</strong> A trinca padrão ouro para backend moderno e automações corporativas.</li>
+              <li><strong>Inglês C1 multiplica o teto salarial:</strong> Transforma faixas de R$ 4k-6k BR para US$ 3.000 a US$ 4.500/mês remotos.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 2: BENCHMARK REFERÊNCIA (50 Vagas Originais) -->
+    <section class="tab-content" id="tab-benchmark">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2 id="titleBenchmarkTab"><span>🏛️</span> 50 Vagas de Benchmark (Referência 2026)</h2>
+            <p class="panel-subtitle" id="subBenchmarkTab">Amostra empírica original cobrindo Dados & BI, Backend Python, Automação/IA e Full Stack</p>
+          </div>
+        </div>
+
+        <div class="filter-bar" id="benchmarkFilterBar">
+          <div class="filter-group" id="benchmarkCategoryGroup">
+            <span style="font-size: 0.82rem; color: var(--text-dim); margin-right: 0.3rem;">Área:</span>
+            <button class="filter-chip active" data-bm-filter="all">Todas (50)</button>
+            <button class="filter-chip" data-bm-filter="data">Dados & BI (18)</button>
+            <button class="filter-chip" data-bm-filter="backend">Backend Python (18)</button>
+            <button class="filter-chip" data-bm-filter="ai_automation">IA & Automação (8)</button>
+            <button class="filter-chip" data-bm-filter="fullstack">Full Stack (6)</button>
+          </div>
+
+          <div class="filter-group" id="benchmarkLevelGroup">
+            <span style="font-size: 0.82rem; color: var(--text-dim); margin-right: 0.3rem;">Nível:</span>
+            <button class="filter-chip active" data-bm-level="all">Todos</button>
+            <button class="filter-chip" data-bm-level="Estágio">Estágio</button>
+            <button class="filter-chip" data-bm-level="Júnior">Júnior</button>
+            <button class="filter-chip" data-bm-level="Pleno">Pleno</button>
+          </div>
+
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="inputSearchBenchmark" class="search-input" placeholder="Buscar nas 50 vagas de benchmark...">
+          </div>
+        </div>
+
+        <div class="postings-grid" id="benchmarkGridContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MINHAS VAGAS ADICIONADAS -->
+    <section class="tab-content" id="tab-myjobs">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2 id="titleMyJobsTab"><span>📋</span> Minhas Vagas Adicionadas</h2>
+            <p class="panel-subtitle" id="subMyJobsTab">Vagas personalizadas adicionadas por você para calibrar seu diagnóstico de mercado</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+            <button class="btn btn-outline btn-sm" id="btnExportUserJobs" title="Exportar backup das minhas vagas em arquivo JSON">
+              <span>📥</span> <span id="txtBtnExportUserJobs">Exportar JSON</span>
+            </button>
+            <button class="btn btn-outline btn-sm" id="btnImportUserJobs" title="Importar vagas de um arquivo JSON">
+              <span>📤</span> <span id="txtBtnImportUserJobs">Importar JSON</span>
+            </button>
+            <input type="file" id="inputImportUserJobs" accept=".json" style="display: none;">
+            <button class="btn btn-primary btn-sm" onclick="app.switchTab('tab-add')">
+              <span>➕</span> <span id="txtBtnAddCustom">Adicionar Vaga</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-bar" id="myJobsFilterBar">
+          <div class="filter-group" id="myJobsCategoryGroup">
+            <span style="font-size: 0.82rem; color: var(--text-dim); margin-right: 0.3rem;">Área:</span>
+            <button class="filter-chip active" data-mj-filter="all">Todas</button>
+            <button class="filter-chip" data-mj-filter="data">Dados & BI</button>
+            <button class="filter-chip" data-mj-filter="backend">Backend Python</button>
+            <button class="filter-chip" data-mj-filter="ai_automation">IA & Automação</button>
+            <button class="filter-chip" data-mj-filter="fullstack">Full Stack</button>
+          </div>
+
+          <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="inputSearchMyJobs" class="search-input" placeholder="Buscar nas minhas vagas...">
+          </div>
+        </div>
+
+        <div class="postings-grid" id="myJobsGridContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: MINHA MATRIZ DE SKILLS ("SET YOUR SKILL LIST") -->
+    <section class="tab-content" id="tab-matrix">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2><span>🎯</span> Minha Matriz de Habilidades ("Set Your Skill List")</h2>
+            <p class="panel-subtitle">Defina seu nível de domínio em cada habilidade demandada pelo mercado para calibrar seu diagnóstico</p>
+          </div>
+          <div class="filter-group">
+            <button class="filter-chip active" data-matrix-cat="all">Todas as Categorias</button>
+            <button class="filter-chip" data-matrix-cat="languages">Linguagens</button>
+            <button class="filter-chip" data-matrix-cat="data_bi">Dados & BI</button>
+            <button class="filter-chip" data-matrix-cat="backend_apis">Backend & APIs</button>
+            <button class="filter-chip" data-matrix-cat="cloud_devops">Cloud & DevOps</button>
+            <button class="filter-chip" data-matrix-cat="ai_automation">IA & Automação</button>
+            <button class="filter-chip" data-matrix-cat="education_diff">Diferenciais</button>
+          </div>
+        </div>
+
+        <div class="skills-matrix-grid" id="skillsMatrixContainer">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: GAP ANALYSIS & ACTIONABLE LEVERS -->
+    <section class="tab-content" id="tab-gaps">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2><span>⚡</span> Diagnóstico de Gaps & Alavancas Competitivas</h2>
+            <p class="panel-subtitle">Identificação cirúrgica de onde concentrar suas horas de estudo para obter o maior retorno</p>
+          </div>
+        </div>
+
+        <div class="gap-overview-grid">
+          <div class="score-circle-wrapper">
+            <svg class="score-svg" viewBox="0 0 160 160" id="gaugeSvg">
+              <circle class="score-bg-circle" cx="80" cy="80" r="64" />
+              <circle class="score-val-circle" id="scoreCircleValue" cx="80" cy="80" r="64" stroke-dasharray="402" stroke-dashoffset="100" />
+              <text x="80" y="80" class="score-center-text" id="scoreCenterText">74%</text>
+            </svg>
+            <h3 style="font-size: 1.1rem; margin-top: 1rem; color: var(--text-main);">Índice de Aderência</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 0.25rem;">
+              Calculado ponderando a frequência de cada skill nas 50 vagas reais
+            </p>
+          </div>
+
+          <div class="gap-metrics-columns">
+            <!-- Column 1: Critical Gaps -->
+            <div class="gap-column-card" style="border-top: 3px solid var(--status-gap);">
+              <div class="gap-column-header text-amber">
+                <span>⚠️</span> Gaps Críticos (&gt;40% de Demanda)
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">
+                Tecnologias que eliminam seu currículo se faltarem nos filtros das vagas.
+              </p>
+              <div class="gap-list" id="criticalGapsList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- Column 2: Quick Wins -->
+            <div class="gap-column-card" style="border-top: 3px solid var(--status-learning);">
+              <div class="gap-column-header text-cyan">
+                <span>⚡</span> Quick Wins (Em Aprendizado)
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">
+                Você já começou! Finalizar estes tópicos aumentará rapidamente seu score.
+              </p>
+              <div class="gap-list" id="quickWinsList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+
+            <!-- Column 3: Mastered Strengths -->
+            <div class="gap-column-card" style="border-top: 3px solid var(--status-mastered);">
+              <div class="gap-column-header text-emerald">
+                <span>🛡️</span> Seus Pontos Fortes & Trunfos
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted);">
+                Competências comprovadas que você já deve destacar no resumo do LinkedIn.
+              </p>
+              <div class="gap-list" id="masteredStrengthsList">
+                <!-- Injected by JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: 30-60-90 DAY STRATEGIC ACTION PLAN -->
+    <section class="tab-content" id="tab-actionplan">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2><span>🚀</span> Plano Tático de Ação 30-60-90 Dias (Execução de Elite)</h2>
+            <p class="panel-subtitle">Roteiro personalizado de estudo e construção de portfólio calibrado a partir dos 50 anúncios analisados</p>
+          </div>
+          <button class="btn btn-outline" id="btnPrintPlan">
+            <span>🖨️</span> Imprimir / Salvar PDF
+          </button>
+        </div>
+
+        <div class="action-plan-timeline" id="actionPlanContainer">
+          <!-- Phase 1 -->
+          <div class="plan-card phase-1">
+            <span class="plan-phase-tag">Bloco 1 • Dias 1 a 30</span>
+            <h3 class="plan-title">Fundação Prática de Dados & Código</h3>
+            <p class="plan-objective">
+              Garantir fluência na skill mais exigida do mercado (SQL 92%) e estruturar scripts de limpeza de dados em Python.
+            </p>
+            <ul class="plan-tasks-list">
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>SQLbolt & DataLemur:</strong> Praticar diariamente Window Functions, CTEs e junções complexas.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Python Pandas:</strong> Scripts para limpar planilhas e ler dados CSV/JSON com tratamento de nulos.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Git & GitHub:</strong> Criar repositório público documentando os 30 dias de queries e scripts.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Candidaturas Imediatas:</strong> Disparar inscrições para estágios em Salvador (Hospital Aliança, Dasa, TRE, SEFAZ).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Phase 2 -->
+          <div class="plan-card phase-2">
+            <span class="plan-phase-tag">Bloco 2 • Dias 31 a 60</span>
+            <h3 class="plan-title">Integração de APIs, Automações & BI</h3>
+            <p class="plan-objective">
+              Conectar o mundo dos dados com sistemas backend e automação low-code/pro-code com n8n e FastAPI.
+            </p>
+            <ul class="plan-tasks-list">
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>FastAPI + PostgreSQL:</strong> Construir uma API REST com rotas GET/POST, Pydantic e banco local.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>n8n + LLM APIs:</strong> Automação que recebe webhook, consulta API de IA para extrair dados em JSON e salva no banco.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Power BI & DAX:</strong> Criar dashboard com modelo estrela (Star Schema) consumindo a base tratada.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Decisão de Foco:</strong> Certificação <strong>Microsoft PL-300</strong> (se Dados) ou aprofundamento em FastAPI/Docker (se Backend).</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Phase 3 -->
+          <div class="plan-card phase-3">
+            <span class="plan-phase-tag">Bloco 3 • Dias 61 a 90</span>
+            <h3 class="plan-title">Projeto Flagship & Vagas Remotas em USD</h3>
+            <p class="plan-objective">
+              Posicionar seu perfil para vagas internacionais remotas em Dólar e empresas multinacionais aproveitando o Inglês C1.
+            </p>
+            <ul class="plan-tasks-list">
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Docker Compose:</strong> Subir PostgreSQL e FastAPI em containers isolados com deploy no Render/Railway.</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Projeto Flagship Integrado:</strong> Pipeline ponta a ponta na área de Saúde ou Logística com vídeo demo em inglês (Loom de 3 min).</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>LinkedIn em Inglês:</strong> Perfil otimizado para ATS com keywords extraídas deste analisador (SQL, Python, Power BI, FastAPI).</span>
+              </li>
+              <li class="plan-task-item">
+                <span class="task-check">✓</span>
+                <span><strong>Candidaturas Internacionais:</strong> 5 aplicações semanais em plataformas remotas (Toptal, Wellfound, LinkedIn US/LatAm).</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: ADD & BATCH INGEST POSTINGS -->
+    <section class="tab-content" id="tab-add">
+      <div class="glass-panel">
+        <div class="panel-title">
+          <div>
+            <h2><span>➕</span> Inserir Novas Vagas para Análise</h2>
+            <p class="panel-subtitle">Cole um novo anúncio de emprego individual ou importe em lote para atualizar suas estatísticas</p>
+          </div>
+        </div>
+
+        <!-- Guidance Alert Box for User Ingestion -->
+        <div class="form-alert-box" id="formAlertBox">
+          <div class="alert-icon">⚠️</div>
+          <div class="alert-content">
+            <h4 id="alertTitle">Orientações para Extração Precisa (Evite Falsos Positivos)</h4>
+            <p id="alertDesc">
+              Para garantir que as estatísticas reflitam a realidade técnica e evitar distorções (ex: "Plano de Saúde" confundido com conhecimento no setor hospitalar):
+            </p>
+            <ul id="alertList">
+              <li><strong>✅ O que colar:</strong> Apenas o bloco de <em>Requisitos Obrigatórios</em>, <em>Qualificações</em>, <em>Diferenciais/Desejáveis</em> e <em>Responsabilidades</em>.</li>
+              <li><strong>⛔ O que evitar:</strong> Seção de <em>Benefícios</em> (vale transporte, plano de saúde, gympass), textos institucionais de marketing ou políticas de RH.</li>
+            </ul>
+          </div>
+        </div>
+
+        <form id="formAddPosting" class="form-grid">
+          <div class="form-group">
+            <label class="form-label" for="inputJobTitle" id="lblJobTitle">Título do Cargo / Vaga *</label>
+            <input type="text" id="inputJobTitle" class="form-input" placeholder="Ex: Analista de Dados Júnior" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputJobCompany" id="lblJobCompany">Empresa *</label>
+            <input type="text" id="inputJobCompany" class="form-input" placeholder="Ex: Nubank, Mercado Livre, etc." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="selectJobCategory" id="lblJobCategory">Área / Categoria *</label>
+            <select id="selectJobCategory" class="form-select" required>
+              <option value="data">Dados & Business Intelligence</option>
+              <option value="backend">Backend & Arquitetura Python</option>
+              <option value="ai_automation">IA Aplicada & Automação</option>
+              <option value="fullstack">Full Stack / Geral</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="selectJobLevel" id="lblJobLevel">Senioridade / Nível *</label>
+            <select id="selectJobLevel" class="form-select" required>
+              <option value="Estágio">Estágio</option>
+              <option value="Júnior" selected>Júnior</option>
+              <option value="Pleno">Pleno</option>
+              <option value="Mid/Senior">Mid/Senior</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputJobModality" id="lblJobModality">Modalidade *</label>
+            <input type="text" id="inputJobModality" class="form-input" placeholder="Ex: Remoto BR, Remoto USD, Híbrido Salvador" value="Remoto BR" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="inputJobSalary" id="lblJobSalary">Faixa Salarial / Bolsa (Opcional)</label>
+            <input type="text" id="inputJobSalary" class="form-input" placeholder="Ex: R$ 4.500 - R$ 5.500 ou $3,500 USD">
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label" for="textareaJobDescription" id="lblJobDesc">Descrição e Requisitos da Vaga *</label>
+            <textarea id="textareaJobDescription" class="form-textarea" placeholder="Cole aqui APENAS os requisitos e qualificações técnicas da vaga...
+
+✅ EXEMPLO RECOMENDADO:
+- Requisitos Obrigatórios: Python, SQL, Git, Docker, PostgreSQL
+- Requisitos Diferenciais: FastAPI, AWS, React, Inglês C1
+- Atribuições: Criação de APIs e automações
+
+⛔ EVITE COLAR: Benefícios (plano de saúde, vale transporte), políticas de RH ou textos promocionais da empresa." required></textarea>
+          </div>
+
+          <div class="form-group full-width" style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+            <button type="reset" class="btn btn-outline" id="btnResetForm">Limpar Campos</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitPosting">Processar & Adicionar à Análise</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Modal for Detailed Job Posting View -->
+    <div class="modal-overlay" id="postingModalOverlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <h2 id="modalJobTitle" style="font-size: 1.25rem; font-weight: 700; color: #fff;">Título da Vaga</h2>
+            <div id="modalJobSub" style="font-size: 0.88rem; color: var(--accent-cyan); margin-top: 0.2rem;">Empresa • Nível • Modalidade</div>
+          </div>
+          <button class="modal-close-btn" id="modalCloseBtn" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-skills-box">
+            <strong style="color: var(--accent-cyan); font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">
+              🧠 Habilidades Extraídas pelo SkillPulse:
+            </strong>
+            <div class="posting-skills-preview" id="modalSkillsList">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+          <div id="modalJobBodyText">
+            <!-- Full Job description text -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>SkillPulse AI</strong> • Inteligência de Requisitos para Transição de Carreira Tech (2026)
+      </div>
+      <div class="footer-links">
+        <a href="#tab-overview" class="footer-tab-link" data-tab="tab-overview">Métricas</a>
+        <a href="#tab-postings" class="footer-tab-link" data-tab="tab-postings">50 Vagas</a>
+        <a href="#tab-matrix" class="footer-tab-link" data-tab="tab-matrix">Matriz de Skills</a>
+        <a href="#tab-actionplan" class="footer-tab-link" data-tab="tab-actionplan">Plano 30-60-90</a>
+      </div>
+    </footer>
+
+    <!-- Dedicated Full Application PDF Report Container (Rendered during window.print) -->
+    <div id="fullPdfReport"></div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="postings-data.js"></script>
+  <script src="analyzer.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
